@@ -47,7 +47,7 @@ cd AutoApply
 
 2. Extract your profile data:
 ```bash
-poetry run autoapply extract --pdf-path "/path/to/LinkedIn_Profile.pdf"
+poetry run autoapply extract "/path/to/LinkedIn_Profile.pdf"
 ```
 
 3. Apply to a job:
