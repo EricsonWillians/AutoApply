@@ -1,3 +1,5 @@
+# app/utils/exceptions.py
+
 """
 Exceptions module for AutoApply.
 
@@ -24,15 +26,14 @@ class AutoApplyError(Exception):
         Initialize the base exception.
 
         Args:
-            message: Primary error message.
-            details: Additional error details for debugging.
-            original_error: Original exception that caused this error.
+            message: Primary error message
+            details: Additional error details for debugging
+            original_error: Original exception that caused this error
         """
         self.message = message
         self.details = details or {}
         self.original_error = original_error
 
-        # Build the full error message
         full_message = message
         if details:
             full_message += f"\nDetails: {details}"
@@ -40,16 +41,6 @@ class AutoApplyError(Exception):
             full_message += f"\nOriginal error: {str(original_error)}"
 
         super().__init__(full_message)
-
-
-class ConfigurationError(AutoApplyError):
-    """Raised when there are issues with application configuration."""
-
-    def __init__(
-        self, message: str = "Configuration error occurred", **kwargs: Any
-    ) -> None:
-        """Initialize the configuration error."""
-        super().__init__(f"Configuration Error: {message}", **kwargs)
 
 
 class ProfileError(AutoApplyError):
@@ -62,11 +53,21 @@ class ProfileError(AutoApplyError):
         super().__init__(f"Profile Error: {message}", **kwargs)
 
 
+class ProfileParsingError(ProfileError):
+    """Raised when parsing LinkedIn profile content fails."""
+
+    def __init__(
+        self, message: str = "Failed to parse profile content", **kwargs: Any
+    ) -> None:
+        """Initialize the profile parsing error."""
+        super().__init__(f"Parsing Error: {message}", **kwargs)
+
+
 class ProfileExtractionError(ProfileError):
     """Raised when profile extraction from PDF fails."""
 
     def __init__(
-        self, message: str = "Failed to extract profile data from PDF", **kwargs: Any
+        self, message: str = "Failed to extract profile data", **kwargs: Any
     ) -> None:
         """Initialize the profile extraction error."""
         super().__init__(f"Extraction Error: {message}", **kwargs)
@@ -82,80 +83,22 @@ class ProfileValidationError(ProfileError):
         super().__init__(f"Validation Error: {message}", **kwargs)
 
 
-class StorageError(AutoApplyError):
-    """Base class for storage-related errors."""
+class PDFError(AutoApplyError):
+    """Base class for PDF-related errors."""
+
+    def __init__(self, message: str = "PDF operation failed", **kwargs: Any) -> None:
+        """Initialize the PDF error."""
+        super().__init__(f"PDF Error: {message}", **kwargs)
+
+
+class PDFExtractionError(PDFError):
+    """Raised when text extraction from PDF fails."""
 
     def __init__(
-        self, message: str = "Storage operation failed", **kwargs: Any
+        self, message: str = "Failed to extract text from PDF", **kwargs: Any
     ) -> None:
-        """Initialize the storage error."""
-        super().__init__(f"Storage Error: {message}", **kwargs)
-
-
-class EncryptionError(StorageError):
-    """Raised when encryption or decryption operations fail."""
-
-    def __init__(
-        self, message: str = "Encryption operation failed", **kwargs: Any
-    ) -> None:
-        """Initialize the encryption error."""
-        super().__init__(f"Encryption Error: {message}", **kwargs)
-
-
-class AutomationError(AutoApplyError):
-    """Base class for automation-related errors."""
-
-    def __init__(
-        self, message: str = "Automation operation failed", **kwargs: Any
-    ) -> None:
-        """Initialize the automation error."""
-        super().__init__(f"Automation Error: {message}", **kwargs)
-
-
-class BrowserError(AutomationError):
-    """Raised when browser automation operations fail."""
-
-    def __init__(
-        self, message: str = "Browser operation failed", **kwargs: Any
-    ) -> None:
-        """Initialize the browser error."""
-        super().__init__(f"Browser Error: {message}", **kwargs)
-
-
-class FormError(AutomationError):
-    """Base class for form-related errors."""
-
-    def __init__(self, message: str = "Form operation failed", **kwargs: Any) -> None:
-        """Initialize the form error."""
-        super().__init__(f"Form Error: {message}", **kwargs)
-
-
-class FormDetectionError(FormError):
-    """Raised when form field detection fails."""
-
-    def __init__(
-        self, message: str = "Failed to detect form fields", **kwargs: Any
-    ) -> None:
-        """Initialize the form detection error."""
-        super().__init__(f"Detection Error: {message}", **kwargs)
-
-
-class FormFillingError(FormError):
-    """Raised when form filling operations fail."""
-
-    def __init__(
-        self, message: str = "Failed to fill form fields", **kwargs: Any
-    ) -> None:
-        """Initialize the form filling error."""
-        super().__init__(f"Filling Error: {message}", **kwargs)
-
-
-class FormSubmissionError(FormError):
-    """Raised when form submission fails."""
-
-    def __init__(self, message: str = "Failed to submit form", **kwargs: Any) -> None:
-        """Initialize the form submission error."""
-        super().__init__(f"Submission Error: {message}", **kwargs)
+        """Initialize the PDF extraction error."""
+        super().__init__(f"Extraction Error: {message}", **kwargs)
 
 
 class AIError(AutoApplyError):
@@ -172,6 +115,16 @@ class ModelError(AIError):
     def __init__(self, message: str = "Model operation failed", **kwargs: Any) -> None:
         """Initialize the model error."""
         super().__init__(f"Model Error: {message}", **kwargs)
+
+
+class FieldMappingError(AIError):
+    """Raised when AI field mapping or classification fails."""
+
+    def __init__(
+        self, message: str = "Field mapping operation failed", **kwargs: Any
+    ) -> None:
+        """Initialize the field mapping error."""
+        super().__init__(f"Field Mapping Error: {message}", **kwargs)
 
 
 class ValidationError(AutoApplyError):
@@ -191,7 +144,14 @@ class InputValidationError(ValidationError):
         field: Optional[str] = None,
         **kwargs: Any,
     ) -> None:
-        """Initialize the input validation error."""
+        """
+        Initialize the input validation error.
+
+        Args:
+            message: Error message
+            field: Name of the problematic field
+            **kwargs: Additional error details
+        """
         if field:
             message = f"Input validation failed for field '{field}': {message}"
         super().__init__(message, **kwargs)
@@ -223,7 +183,15 @@ class TimeoutError(AutoApplyError):
         timeout: Optional[float] = None,
         **kwargs: Any,
     ) -> None:
-        """Initialize the timeout error."""
+        """
+        Initialize the timeout error.
+
+        Args:
+            message: Error message
+            operation: Name of the operation that timed out
+            timeout: Duration after which the operation timed out
+            **kwargs: Additional error details
+        """
         if operation and timeout:
             message = f"{operation} timed out after {timeout} seconds"
         super().__init__(f"Timeout Error: {message}", **kwargs)
