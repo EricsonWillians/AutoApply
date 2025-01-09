@@ -1,3 +1,5 @@
+# app/main.py
+
 """
 Main application module for AutoApply.
 
@@ -9,6 +11,7 @@ File location: app/main.py
 """
 
 import asyncio
+import traceback
 from pathlib import Path
 from typing import Optional
 
@@ -17,8 +20,9 @@ from rich.console import Console
 from rich.progress import Progress, SpinnerColumn, TextColumn
 
 from app.core.form_filler import form_filler
-from app.core.pdf_parser import create_profile_from_pdf
+from app.core.pdf_parser import LinkedInProfile, create_profile_from_pdf
 from app.core.verification import form_verification
+from app.services.huggingface_integration import huggingface_service
 from app.utils.config import settings
 from app.utils.logging import LoggerMixin, get_logger
 
@@ -60,15 +64,18 @@ class ApplicationManager(LoggerMixin):
                 TextColumn("[progress.description]{task.description}"),
                 console=console,
             ) as progress:
+                # No need to initialize separately as the service uses HTTP requests
                 progress.add_task(description="Extracting profile data...", total=None)
 
-                profile = create_profile_from_pdf(pdf_path)
+                # Create profile
+                profile = await create_profile_from_pdf(pdf_path)
 
             console.print("\n✓ Profile data extracted successfully", style="bold green")
             self.log_operation_end("profile extraction")
 
         except Exception as e:
             self.log_error(e, "profile extraction")
+            traceback.print_exc()
             console.print(f"\n✗ Error extracting profile: {str(e)}", style="bold red")
             raise typer.Exit(1)
 

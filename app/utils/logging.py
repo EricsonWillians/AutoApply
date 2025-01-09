@@ -77,6 +77,20 @@ class LoggerMixin:
         """
         self.logger.info(f"Starting {operation}", **kwargs)
 
+    def log_info(self, message: str, **kwargs: Any) -> None:
+        """
+        Log an info message with optional context.
+
+        Args:
+            message: The message to log
+            **kwargs: Optional key-value pairs for additional context
+        """
+        if kwargs:
+            context = " | ".join(f"{k}={v}" for k, v in kwargs.items())
+            self.logger.info(f"{message} | {context}")
+        else:
+            self.logger.info(message)
+
     def log_operation_end(self, operation: str, **kwargs: Any) -> None:
         """
         Log the successful completion of an operation.
